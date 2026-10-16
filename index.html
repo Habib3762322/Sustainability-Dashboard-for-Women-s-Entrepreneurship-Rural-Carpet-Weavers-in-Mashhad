@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد جامع SmartPLS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <span class="logo">📊</span>
+    <div>
+      <h1 data-i18n="app_title">داشبورد جامع SmartPLS</h1>
+      <div class="subtitle" data-i18n="app_subtitle"></div>
+    </div>
+  </div>
+  <div class="header-controls">
+    <span id="data-source" class="data-source">…</span>
+    <button id="lang-btn" class="ctrl-btn">EN</button>
+    <button id="theme-btn" class="ctrl-btn">🌙</button>
+    <button id="print-btn" class="ctrl-btn">🖨</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <aside>
+    <div class="layer-label" data-i18n="menu_layer"></div>
+    <button class="nav-btn active" data-section="overview" data-i18n="nav_overview"></button>
+
+    <div class="divider"></div>
+    <div class="layer-label" data-i18n="menu_layer2"></div>
+    <button class="nav-btn" data-section="descriptive" data-i18n="nav_descriptive"></button>
+    <button class="nav-btn" data-section="l2-forest" data-i18n="nav_l2_forest"></button>
+    <button class="nav-btn" data-section="l2-significance" data-i18n="nav_l2_sig"></button>
+    <button class="nav-btn" data-section="l2-landscape" data-i18n="nav_l2_land"></button>
+
+    <div class="divider"></div>
+    <div class="layer-label" data-i18n="menu_layer3"></div>
+    <button class="nav-btn" data-section="l3-overview" data-i18n="nav_l3_overview"></button>
+    <button class="nav-btn" data-section="l3-charts" data-i18n="nav_l3_charts"></button>
+
+    <div class="divider"></div>
+    <div class="layer-label" data-i18n="menu_layer1"></div>
+    <button class="nav-btn" data-section="l1-path" data-i18n="nav_l1_path"></button>
+    <button class="nav-btn" data-section="l1-quality" data-i18n="nav_l1_quality"></button>
+    <button class="nav-btn" data-section="l1-loadings" data-i18n="nav_l1_loadings"></button>
+    <button class="nav-btn" data-section="l1-vif-table" data-i18n="nav_l1_vif_table"></button>
+    <button class="nav-btn" data-section="l1-reliability" data-i18n="nav_l1_reliability"></button>
+    <button class="nav-btn" data-section="l1-htmt" data-i18n="nav_l1_htmt"></button>
+    <button class="nav-btn" data-section="l1-moderation" data-i18n="nav_l1_mod"></button>
+
+    <div class="divider"></div>
+    <div class="layer-label" data-i18n="menu_tools"></div>
+    <button class="nav-btn" data-section="data" data-i18n="nav_data"></button>
+    <button class="nav-btn" data-section="hypotheses" data-i18n="nav_hypotheses"></button>
+    <button class="nav-btn" data-section="smartpls-graphical" data-i18n="nav_smartpls_graphical"></button>
+    <button class="nav-btn" data-section="method" data-i18n="nav_method"></button>
+    <button class="nav-btn" data-section="download" data-i18n="nav_download"></button>
+  </aside>
+
+  <main>
+
+    <div class="filter-bar" id="filter-bar" style="display:none">
+      <div class="filter-item">
+        <label data-i18n="filter_indicators"></label>
+        <div class="multi-select">
+          <button id="ms-toggle" class="ms-btn"><span id="ms-label" data-i18n="all_indicators"></span> ▾</button>
+          <div id="ms-dropdown" class="ms-dropdown"></div>
+        </div>
+      </div>
+      <button id="reset-filter" class="btn-secondary" data-i18n="filter_reset"></button>
+      <div class="filter-item" style="margin-inline-start:auto">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text"></span>
+      </div>
+    </div>
+
+    <section id="section-overview" class="page active">
+      <h2 class="page-title" data-i18n="overview_title"></h2>
+      <p class="page-desc" data-i18n="overview_desc"></p>
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="overview_diagram"></div>
+        <div id="chart-overview-path" class="plot tall"></div>
+      </div>
+    </section>
+
+    <!-- ============ DESCRIPTIVE STATISTICS (NEW) ============ -->
+    <section id="section-descriptive" class="page">
+      <h2 class="page-title" data-i18n="desc_title"></h2>
+      <p class="page-desc" data-i18n="desc_desc"></p>
+
+      <div class="kpi-grid" id="desc-kpi-grid"></div>
+
+      <div class="desc-grid">
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="desc_chart_gender"></div>
+          <div id="chart-desc-gender" class="plot"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="desc_chart_age"></div>
+          <div id="chart-desc-age" class="plot"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="desc_chart_edu"></div>
+          <div id="chart-desc-edu" class="plot"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="desc_chart_distance"></div>
+          <div id="chart-desc-distance" class="plot"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="desc_chart_cost"></div>
+          <div id="chart-desc-cost" class="plot"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="desc_chart_sd"></div>
+          <div id="chart-desc-sd" class="plot"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="desc_table_title"></div>
+        <div id="desc-stats-table-container"></div>
+      </div>
+    </section>
+
+    <section id="section-l2-forest" class="page">
+      <h2 class="page-title" data-i18n="l2_forest_title"></h2>
+      <p class="page-desc" data-i18n="l2_forest_desc"></p>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_forest"></div>
+        <div id="chart-l2-forest" class="plot tall"></div>
+      </div>
+    </section>
+
+    <section id="section-l2-significance" class="page">
+      <h2 class="page-title" data-i18n="l2_sig_title"></h2>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_sig"></div>
+        <div id="chart-l2-sig" class="plot tall"></div>
+      </div>
+    </section>
+
+    <section id="section-l2-landscape" class="page">
+      <h2 class="page-title" data-i18n="l2_land_title"></h2>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_beta_land"></div>
+        <div id="chart-l2-landscape" class="plot"></div>
+      </div>
+    </section>
+
+    <section id="section-l3-overview" class="page">
+      <h2 class="page-title" data-i18n="l3_overview_title"></h2>
+      <p class="page-desc" data-i18n="l3_overview_desc"></p>
+      <div class="kpi-grid" id="kpi-grid-l3"></div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_q2_columns"></div>
+        <div id="chart-l3-q2" class="plot tall"></div>
+      </div>
+    </section>
+
+    <section id="section-l3-charts" class="page">
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_q2_columns"></div>
+        <div id="chart-l3-q2-2" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_rmse_stems"></div>
+        <div id="chart-l3-stems" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_rmse_landscape"></div>
+        <div id="chart-l3-landscape" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_ridge_q2"></div>
+        <div id="chart-l3-ridge" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_cvpat"></div>
+        <div id="chart-l3-cvpat" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_ridgeline"></div>
+        <div id="chart-l3-ridgeline" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_scatter"></div>
+        <div id="chart-l3-scatter" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_forest_cvpat"></div>
+        <div id="chart-l3-forest" class="plot tall"></div>
+      </div>
+    </section>
+
+    <section id="section-l1-path" class="page">
+      <h2 class="page-title" data-i18n="l1_path_title"></h2>
+      <p class="page-desc" data-i18n="l1_path_desc"></p>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_path_diagram"></div>
+        <div id="chart-l1-path" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_beta_bars"></div>
+        <div id="chart-l1-beta-bar" class="plot"></div>
+      </div>
+    </section>
+
+    <section id="section-l1-quality" class="page">
+      <h2 class="page-title" data-i18n="l1_quality_title"></h2>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_r2"></div>
+        <div id="chart-l1-r2" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_f2"></div>
+        <div id="chart-l1-f2" class="plot"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_quality"></div>
+        <div id="chart-l1-quality" class="plot tall"></div>
+      </div>
+    </section>
+
+    <section id="section-l1-loadings" class="page">
+      <h2 class="page-title" data-i18n="l1_loadings_title"></h2>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_loadings"></div>
+        <div id="chart-l1-loadings" class="plot tall"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_vif"></div>
+        <div id="chart-l1-vif" class="plot tall"></div>
+      </div>
+    </section>
+
+    <section id="section-l1-vif-table" class="page">
+      <h2 class="page-title" data-i18n="l1_vif_table_title"></h2>
+      <p class="page-desc" data-i18n="l1_vif_table_desc"></p>
+      <div class="vif-kpi-grid" id="vif-kpi-grid"></div>
+      <div class="vif-filter-bar">
+        <button class="vif-chip vif-chip-all active" data-vif-filter="all"        data-i18n="vif_filter_all"></button>
+        <button class="vif-chip" data-vif-filter="PR"   data-i18n="vif_filter_pr"></button>
+        <button class="vif-chip" data-vif-filter="DT"   data-i18n="vif_filter_dt"></button>
+        <button class="vif-chip" data-vif-filter="SUS"  data-i18n="vif_filter_sus"></button>
+        <button class="vif-chip" data-vif-filter="HG"   data-i18n="vif_filter_hg"></button>
+        <button class="vif-chip" data-vif-filter="QE"   data-i18n="vif_filter_qe"></button>
+        <button class="vif-chip" data-vif-filter="warning" data-i18n="vif_filter_warning"></button>
+        <button class="vif-chip" data-vif-filter="excellent" data-i18n="vif_filter_excellent"></button>
+        <div class="vif-search-wrap">
+          <input type="text" id="vif-search" class="vif-search" data-i18n-ph="vif_search_ph" placeholder="جستجوی شاخص...">
+        </div>
+      </div>
+      <div class="vif-legend">
+        <span class="vif-legend-item"><span class="vif-legend-dot vif-dot-excellent"></span><span data-i18n="vif_status_excellent"></span> (&lt; 2)</span>
+        <span class="vif-legend-item"><span class="vif-legend-dot vif-dot-good"></span><span data-i18n="vif_status_good"></span> (2 – 3)</span>
+        <span class="vif-legend-item"><span class="vif-legend-dot vif-dot-acceptable"></span><span data-i18n="vif_status_acceptable"></span> (3 – 3.3)</span>
+        <span class="vif-legend-item"><span class="vif-legend-dot vif-dot-warning"></span><span data-i18n="vif_status_warning"></span> (3.3 – 5)</span>
+        <span class="vif-legend-item"><span class="vif-legend-dot vif-dot-critical"></span><span data-i18n="vif_status_critical"></span> (≥ 5)</span>
+      </div>
+      <div id="vif-table-container"></div>
+    </section>
+
+    <section id="section-l1-reliability" class="page">
+      <h2 class="page-title" data-i18n="l1_reliability_title"></h2>
+      <p class="page-desc" data-i18n="l1_reliability_desc"></p>
+      <div class="rel-source-badge" id="rel-source-badge"></div>
+      <div id="reliability-container"></div>
+    </section>
+
+    <section id="section-l1-htmt" class="page">
+      <h2 class="page-title" data-i18n="l1_htmt_title"></h2>
+      <p class="page-desc" data-i18n="l1_htmt_desc"></p>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_htmt"></div>
+        <div id="chart-l1-htmt" class="plot tall"></div>
+      </div>
+    </section>
+
+    <section id="section-l1-moderation" class="page">
+      <h2 class="page-title" data-i18n="l1_mod_title"></h2>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_slopes"></div>
+        <div id="chart-l1-slopes" class="plot"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" data-i18n="chart_raincloud"></div>
+        <div id="chart-l1-raincloud" class="plot"></div>
+      </div>
+    </section>
+
+    <section id="section-data" class="page">
+      <h2 class="page-title" data-i18n="data_title"></h2>
+      <div class="search-box">
+        <input type="text" id="table-search" data-i18n-ph="search_ph" placeholder="جستجو...">
+      </div>
+      <div id="data-table-wrapper"></div>
+    </section>
+
+    <section id="section-hypotheses" class="page">
+      <h2 class="page-title" data-i18n="hypotheses_title"></h2>
+      <p class="page-desc" data-i18n="hypotheses_desc"></p>
+      <div class="hyp-kpi-grid" id="hyp-kpi-grid"></div>
+      <div class="hyp-filter-bar">
+        <button class="hyp-chip hyp-chip-all active" data-hyp-filter="all"    data-i18n="hyp_filter_all"></button>
+        <button class="hyp-chip" data-hyp-filter="direct"      data-i18n="hyp_type_direct"></button>
+        <button class="hyp-chip" data-hyp-filter="mediation"   data-i18n="hyp_type_mediation"></button>
+        <button class="hyp-chip" data-hyp-filter="moderator"   data-i18n="hyp_type_moderator"></button>
+        <button class="hyp-chip" data-hyp-filter="nonlinear"   data-i18n="hyp_type_nonlinear"></button>
+        <button class="hyp-chip" data-hyp-filter="confirmed"   data-i18n="hyp_filter_confirmed"></button>
+        <button class="hyp-chip" data-hyp-filter="rejected"    data-i18n="hyp_filter_rejected"></button>
+        <div class="hyp-search-wrap">
+          <input type="text" id="hyp-search" class="hyp-search" data-i18n-ph="hyp_search_ph" placeholder="جستجوی فرضیه یا مسیر...">
+        </div>
+      </div>
+      <div id="hypotheses-container"></div>
+    </section>
+
+    <section id="section-smartpls-graphical" class="page">
+      <h2 class="page-title" data-i18n="smartpls_graphical_title"></h2>
+      <p class="page-desc" data-i18n="smartpls_graphical_desc"></p>
+      <div class="smartpls-gallery">
+        <div class="smartpls-figure">
+          <div class="smartpls-figure-head">
+            <span class="smartpls-fig-index">۱</span>
+            <span class="smartpls-fig-title" data-i18n="smartpls_fig1_title"></span>
+          </div>
+          <div class="smartpls-fig-body">
+            <div id="smartpls-graphic-1" class="plot tall"></div>
+          </div>
+          <div class="smartpls-fig-foot" data-i18n="smartpls_fig1_caption"></div>
+        </div>
+        <div class="smartpls-figure">
+          <div class="smartpls-figure-head">
+            <span class="smartpls-fig-index">۲</span>
+            <span class="smartpls-fig-title" data-i18n="smartpls_fig2_title"></span>
+          </div>
+          <div class="smartpls-fig-body">
+            <div id="smartpls-graphic-2" class="plot tall"></div>
+          </div>
+          <div class="smartpls-fig-foot" data-i18n="smartpls_fig2_caption"></div>
+        </div>
+        <div class="smartpls-figure">
+          <div class="smartpls-figure-head">
+            <span class="smartpls-fig-index">۳</span>
+            <span class="smartpls-fig-title" data-i18n="smartpls_fig3_title"></span>
+          </div>
+          <div class="smartpls-fig-body">
+            <div id="smartpls-graphic-3" class="plot tall"></div>
+          </div>
+          <div class="smartpls-fig-foot" data-i18n="smartpls_fig3_caption"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-method" class="page">
+      <h2 class="page-title" data-i18n="method_title"></h2>
+      <div class="method-box">
+        <h4 data-i18n="method_h1"></h4>
+        <p data-i18n="method_p1"></p>
+      </div>
+      <div class="method-box">
+        <h4 data-i18n="method_h2"></h4>
+        <p data-i18n="method_p2"></p>
+      </div>
+    </section>
+
+    <section id="section-download" class="page">
+      <h2 class="page-title" data-i18n="download_title"></h2>
+      <div class="method-box">
+        <h4 data-i18n="download_csv_title"></h4>
+        <button class="btn-download" onclick="downloadCSV()" data-i18n="download_btn"></button>
+      </div>
+      <div class="excel-viewer" id="excel-viewer-container"></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="info-panel" class="info-panel hidden">
+  <div class="info-header">
+    <span id="info-title">—</span>
+    <button id="info-close">×</button>
+  </div>
+  <div id="info-body"></div>
+</div>
+
+<script src="data.js"></script>
+<script src="loader.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
