@@ -567,3 +567,38 @@ html[data-theme="light"] .desc-table tbody tr:nth-child(even){
   .desc-table thead th{padding:10px 6px;font-size:10.5px}
   .desc-table tbody td{padding:9px 6px}
 }
+
+/* ================================================================
+   MOBILE FIX — اصلاحات نهایی برای موبایل
+   این بلوک در انتهای فایل اضافه شده است.
+   روی دسکتاپ هیچ تغییری ایجاد نمی‌کند.
+   ================================================================ */
+
+/* ۱) اسکرول افقی برای سه جدول اصلی که قبلاً بریده می‌شدند */
+.hyp-table-wrap,
+.vif-table-wrap,
+.desc-table-wrap{
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* اسکرول نرم iOS */
+}
+
+/* ۲) کاهش ارتفاع نمودارها در موبایل تا صفحه کوچک‌تر شود */
+@media (max-width: 900px){
+  .plot.tall{ min-height: 380px; }
+  .smartpls-fig-body .plot{ min-height: 420px; }
+  .desc-grid .plot{ min-height: 300px; }
+}
+
+/* ۳) بهبود خوانایی جدول‌ها در گوشی‌های باریک */
+@media (max-width: 480px){
+  header h1{ font-size: 12.5px; }
+  .page-title{ font-size: 17px; }
+  .kpi-value{ font-size: 20px; }
+  .hyp-table thead th,
+  .vif-table thead th,
+  .desc-table thead th{ font-size: 11px; padding: 9px 6px; }
+  .hyp-row td,
+  .vif-row td,
+  .desc-table tbody td{ font-size: 11px; padding: 8px 6px; }
+}
