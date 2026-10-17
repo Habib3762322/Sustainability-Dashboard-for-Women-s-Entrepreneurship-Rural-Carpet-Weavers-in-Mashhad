@@ -1,12 +1,5 @@
 /* ================================================================
-   داشبورد جامع SmartPLS — app.js (نسخه نهایی)
-   شامل:
-   ✓ Hypotheses Summary
-   ✓ VIF Table
-   ✓ Reliability & Validity
-   ✓ Descriptive Statistics (آمار توصیفی)
-   ✓ SmartPLS Graphical Output
-   ✓ Excel/Word Viewer
+   داشبورد جامع SmartPLS — app.js (نسخه نهایی با پشتیبانی موبایل)
    ================================================================ */
 
 const state={
@@ -26,6 +19,9 @@ const state={
 const FONT_FA='Vazirmatn, Tahoma, sans-serif';
 const $=(id)=>document.getElementById(id);
 const t=(key)=>(I18N[state.lang][key]||key);
+
+/* [MOBILE] تشخیص موبایل */
+const isMobile = () => window.innerWidth < 900;
 
 /* ================================================================
    FILE ACCESS HELPERS
@@ -127,7 +123,6 @@ function plasmaRGB(v,vmin,vmax){
 
 /* ================================================================
    DESCRIPTIVE STATISTICS — آمار توصیفی
-   پرسشنامه فرش دستباف زنان روستایی (n = 250)
    ================================================================ */
 function renderDescriptiveStatistics(){
   const D = (state.loaded && state.loaded.descriptive) || FALLBACK_DESCRIPTIVE;
@@ -144,7 +139,6 @@ function renderDescriptiveStatistics(){
                 font:{family:FONT_FA, size:12, color:'#000'}}
   };
 
-  /* ---- KPI Cards ---- */
   const kpiEl = document.getElementById('desc-kpi-grid');
   if(kpiEl){
     const total = D.gender.stats.N;
@@ -162,7 +156,6 @@ function renderDescriptiveStatistics(){
     `;
   }
 
-  /* ---- 1. Donut Chart — Gender ---- */
   const g = D.gender;
   Plotly.newPlot('chart-desc-gender', [{
     type:'pie',
@@ -175,7 +168,6 @@ function renderDescriptiveStatistics(){
     hovertemplate: '<b>%{label}</b><br>فراوانی: %{value}<br>درصد: %{percent}<extra></extra>'
   }], Object.assign({}, commonLayout, {height: 360}), PLOTLY_CFG);
 
-  /* ---- 2. Bar Chart — Age ---- */
   const a = D.age;
   Plotly.newPlot('chart-desc-age', [{
     type:'bar',
@@ -192,7 +184,6 @@ function renderDescriptiveStatistics(){
     yaxis:{gridcolor:GRID, tickfont:{family:FONT_FA, size:10}}
   }), PLOTLY_CFG);
 
-  /* ---- 3. Horizontal Bar — Education ---- */
   const e = D.education;
   Plotly.newPlot('chart-desc-edu', [{
     type:'bar',
@@ -210,7 +201,6 @@ function renderDescriptiveStatistics(){
     yaxis:{gridcolor:GRID, tickfont:{family:FONT_FA, size:11}}
   }), PLOTLY_CFG);
 
-  /* ---- 4. Bar Chart — Distance ---- */
   const d = D.distance;
   Plotly.newPlot('chart-desc-distance', [{
     type:'bar',
@@ -227,7 +217,6 @@ function renderDescriptiveStatistics(){
     yaxis:{gridcolor:GRID, tickfont:{family:FONT_FA, size:10}}
   }), PLOTLY_CFG);
 
-  /* ---- 5. Bar Chart — Cost ---- */
   const c = D.cost;
   Plotly.newPlot('chart-desc-cost', [{
     type:'bar',
@@ -244,7 +233,6 @@ function renderDescriptiveStatistics(){
     yaxis:{gridcolor:GRID, tickfont:{family:FONT_FA, size:10}}
   }), PLOTLY_CFG);
 
-  /* ---- 6. Polar Bar — SD Comparison ---- */
   const sdNames = ['جنسیت', 'سن', 'تحصیلات', 'فاصله مکانی', 'هزینه'];
   const sdValues = [D.gender.stats.SD, D.age.stats.SD, D.education.stats.SD,
                     D.distance.stats.SD, D.cost.stats.SD];
@@ -267,7 +255,6 @@ function renderDescriptiveStatistics(){
     }
   }), PLOTLY_CFG);
 
-  /* ---- 7. Stats Table ---- */
   const tableEl = document.getElementById('desc-stats-table-container');
   if(tableEl){
     const rows = [
@@ -655,7 +642,6 @@ function renderReliabilityTables(){
 
   let html = '';
 
-  /* Table 1 */
   html += `
     <div class="rel-card">
       <div class="rel-card-head">
@@ -685,7 +671,6 @@ function renderReliabilityTables(){
   });
   html += `</tbody></table></div></div>`;
 
-  /* Table 2 */
   html += `
     <div class="rel-card">
       <div class="rel-card-head">
@@ -720,7 +705,6 @@ function renderReliabilityTables(){
       <div class="rel-note">📘 ${t('rel_note_rho_c')}</div>
     </div></div>`;
 
-  /* Table 3 */
   html += `
     <div class="rel-card">
       <div class="rel-card-head">
@@ -752,7 +736,6 @@ function renderReliabilityTables(){
   });
   html += `</tbody></table></div></div>`;
 
-  /* Table 4 — Fornell-Larcker */
   const FL = R.fornellLarcker || {constructs:[], labels:[], matrix:[]};
   html += `
     <div class="rel-card">
@@ -1584,6 +1567,330 @@ function renderSheetPreview(filename, sheetName){
   area.innerHTML=sheetTabs+tableHtml;
 }
 
+/* ================================================================
+   MOBILE CHARTS — معادل‌های دوبعدی برای موبایل
+   روی کامپیوتر هرگز اجرا نمی‌شوند.
+   ================================================================ */
+
+function renderMobileCharts(id){
+  switch(id){
+    case 'overview':          drawOverviewPathMobile(); break;
+    case 'descriptive':       renderDescriptiveStatistics(); break;
+    case 'l1-path':           drawL1PathDiagram(); drawL1BetaBar(); break;
+    case 'l1-quality':        drawL1R2Mobile(); drawL1F2(); drawL1QualityMobile(); break;
+    case 'l1-loadings':       drawL1LoadingsMobile(); drawL1VIFMobile(); break;
+    case 'l1-vif-table':      renderVIFTable(); break;
+    case 'l1-reliability':    renderReliabilityTables(); break;
+    case 'l1-htmt':           drawL1HTMT(); break;
+    case 'l1-moderation':     drawL1Slopes(); drawL1Raincloud(); break;
+    case 'l2-forest':         drawL2Forest(); break;
+    case 'l2-significance':   drawL2SigMobile(); break;
+    case 'l2-landscape':      drawL2Landscape(); break;
+    case 'l3-overview':       drawL3Q2ColumnsMobile('chart-l3-q2'); break;
+    case 'l3-charts':
+      drawL3Q2ColumnsMobile('chart-l3-q2-2');
+      drawL3StemsMobile();
+      drawL3LandscapeMobile();
+      drawL3RidgeMobile();
+      drawL3CVPATMobile();
+      drawL3RidgelineMobile();
+      drawL3Scatter();
+      drawL3Forest();
+      break;
+    case 'hypotheses':        renderHypotheses(); break;
+    case 'smartpls-graphical': renderSmartPLSGraphics(); break;
+  }
+}
+
+function drawOverviewPathMobile(){
+  const el = document.getElementById('chart-overview-path');
+  if(!el) return;
+  const labels = ['HG→PR','HG→DT','HG→SUS','PR→DT','PR→SUS','DT→SUS','HG×PR→DT','HG×DT→SUS'];
+  const values = [0.542, 0.274, 0.210, 0.262, 0.230, 0.374, 0.256, 0.177];
+  const colors = ['#3498db','#9b59b6','#2ecc71','#e67e22','#f39c12','#27ae60','#e74c3c','#8e44ad'];
+  const c = themeColors();
+  Plotly.newPlot(el, [{
+    type:'bar', orientation:'h',
+    y: labels, x: values,
+    marker:{ color: colors, line:{ color:'#fff', width:1 } },
+    text: values.map(v => v.toFixed(3)),
+    textposition:'outside',
+    textfont:{ size:11, color:c.text }
+  }], {
+    margin:{ l:110, r:40, t:20, b:30 },
+    height: 420,
+    paper_bgcolor: c.paper, plot_bgcolor: c.plot,
+    font:{ color:c.text, family:FONT_FA, size:11 },
+    xaxis:{ gridcolor:c.grid },
+    yaxis:{ gridcolor:c.grid },
+    showlegend:false
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL1R2Mobile(){
+  const el = document.getElementById('chart-l1-r2');
+  if(!el) return;
+  const r2 = state.loaded.r2;
+  const c = themeColors();
+  Plotly.newPlot(el, [
+    { type:'bar', name:'R²', x: r2.map(r=>r.Construct), y: r2.map(r=>r.R2), marker:{ color:'#3498db' } },
+    { type:'bar', name:'R² Adj', x: r2.map(r=>r.Construct), y: r2.map(r=>r.R2_Adj), marker:{ color:'#9b59b6' } }
+  ], {
+    barmode:'group', height:360,
+    margin:{ l:50, r:20, t:30, b:40 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:11 },
+    xaxis:{ gridcolor:c.grid }, yaxis:{ title:'R²', gridcolor:c.grid, range:[0,0.6] },
+    legend:{ font:{ color:c.text } }
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL1QualityMobile(){
+  const el = document.getElementById('chart-l1-quality');
+  if(!el) return;
+  const q = state.loaded.quality;
+  const constructs = Object.keys(q);
+  const c = themeColors();
+  const metrics = [
+    { name:'Cronbach α', key:'Cronbach', color:'#3498db' },
+    { name:'rho_a',      key:'rho_a',   color:'#9b59b6' },
+    { name:'rho_c',      key:'rho_c',   color:'#f39c12' },
+    { name:'AVE',        key:'AVE',     color:'#27ae60' }
+  ];
+  const traces = metrics.map(m => ({
+    type:'bar', name: m.name,
+    x: constructs,
+    y: constructs.map(k => q[k][m.key]),
+    marker:{ color: m.color }
+  }));
+  Plotly.newPlot(el, traces, {
+    barmode:'group', height:380,
+    margin:{ l:50, r:20, t:30, b:40 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:11 },
+    xaxis:{ gridcolor:c.grid }, yaxis:{ title:'مقدار', gridcolor:c.grid, range:[0,1] },
+    legend:{ font:{ color:c.text } }
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL1LoadingsMobile(){
+  const el = document.getElementById('chart-l1-loadings');
+  if(!el) return;
+  const L = state.loaded.loadings;
+  const c = themeColors();
+  const constructs = Object.keys(L);
+  const maxInd = Math.max(...constructs.map(k => Object.keys(L[k]).length));
+  const z = constructs.map(k => {
+    const qs = Object.keys(L[k]).sort();
+    const row = [];
+    for(let i=0; i<maxInd; i++) row.push(i < qs.length ? L[k][qs[i]] : null);
+    return row;
+  });
+  Plotly.newPlot(el, [{
+    type:'heatmap', z: z, x: Array.from({length:maxInd},(_,i)=>'Q'+(i+1)), y: constructs,
+    colorscale:'RdYlGn', zmin:0.6, zmax:1.0,
+    colorbar:{ title:'بار', thickness:12, tickfont:{ color:c.text } },
+    hovertemplate:'سازه: %{y}<br>شاخص: %{x}<br>بار: %{z:.3f}<extra></extra>'
+  }], {
+    height:360, margin:{ l:60, r:20, t:20, b:50 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:11 },
+    xaxis:{ gridcolor:c.grid, side:'top' },
+    yaxis:{ gridcolor:c.grid }
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL1VIFMobile(){
+  const el = document.getElementById('chart-l1-vif');
+  if(!el) return;
+  const V = state.loaded.vif || FALLBACK_VIF;
+  const c = themeColors();
+  const constructs = Object.keys(V);
+  const maxInd = Math.max(...constructs.map(k => Object.keys(V[k]).length));
+  const z = constructs.map(k => {
+    const qs = Object.keys(V[k]).sort((a,b)=>(parseInt(a.replace(/\D/g,''))||0)-(parseInt(b.replace(/\D/g,''))||0));
+    const row = [];
+    for(let i=0; i<maxInd; i++) row.push(i < qs.length ? V[k][qs[i]] : null);
+    return row;
+  });
+  Plotly.newPlot(el, [{
+    type:'heatmap', z: z, x: Array.from({length:maxInd},(_,i)=>'Q'+(i+1)), y: constructs,
+    colorscale:[[0,'#2ca02c'],[0.5,'#ffd700'],[1,'#d62728']], zmin:1, zmax:5,
+    colorbar:{ title:'VIF', thickness:12, tickfont:{ color:c.text } },
+    hovertemplate:'سازه: %{y}<br>شاخص: %{x}<br>VIF: %{z:.3f}<extra></extra>'
+  }], {
+    height:360, margin:{ l:60, r:20, t:20, b:50 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:11 },
+    xaxis:{ gridcolor:c.grid, side:'top' },
+    yaxis:{ gridcolor:c.grid }
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL2SigMobile(){
+  const el = document.getElementById('chart-l2-sig');
+  if(!el) return;
+  const c = themeColors();
+  const paths = state.loaded.paths;
+  const x = paths.map(p => p.Original);
+  const y = paths.map(p => Number(p.T));
+  const pv = paths.map(p => Number(p.P));
+  const colors = pv.map(v => v < 0.05 ? '#2ca02c' : '#d62728');
+  const sizes = pv.map(v => v < 0.05 ? 14 : 10);
+  const labels = paths.map(p => p.Path);
+  Plotly.newPlot(el, [{
+    type:'scatter', mode:'markers',
+    x: x, y: y,
+    marker:{ color: colors, size: sizes, line:{ color:'#000', width:1 } },
+    text: labels,
+    hovertemplate:'<b>%{text}</b><br>β = %{x:.3f}<br>T = %{y:.2f}<extra></extra>'
+  }], {
+    height:420, margin:{ l:50, r:20, t:30, b:50 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:11 },
+    xaxis:{ title:'β', gridcolor:c.grid, zeroline:true, zerolinecolor:'#888' },
+    yaxis:{ title:'T', gridcolor:c.grid },
+    shapes:[{ type:'line', x0:0, x1:0, y0:Math.min(...y)*0.9, y1:Math.max(...y)*1.1, line:{ color:'red', dash:'dash', width:1.5 } }],
+    showlegend:false
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL3Q2ColumnsMobile(targetId){
+  const el = document.getElementById(targetId);
+  if(!el) return;
+  const c = themeColors();
+  const idx = activeIndices();
+  const labels = idx.map(i => DATA.indicators[i]);
+  const values = idx.map(i => DATA.Q2[i]);
+  const colors = values.map(v => v > 0.10 ? '#2ca02c' : (v > 0 ? '#ff7f0e' : '#d62728'));
+  Plotly.newPlot(el, [{
+    type:'bar', x: labels, y: values,
+    marker:{ color: colors, line:{ color:'#000', width:0.5 } },
+    hovertemplate:'<b>%{x}</b><br>Q² = %{y:.4f}<extra></extra>'
+  }], {
+    height:380, margin:{ l:50, r:20, t:30, b:90 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:10 },
+    xaxis:{ gridcolor:c.grid, tickangle:-60, tickfont:{ size:9 } },
+    yaxis:{ title:'Q²predict', gridcolor:c.grid },
+    shapes:[{ type:'line', x0:-0.5, x1:labels.length-0.5, y0:0.10, y1:0.10, line:{ color:'green', dash:'dash', width:1.5 } }],
+    showlegend:false
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL3StemsMobile(){
+  const el = document.getElementById('chart-l3-stems');
+  if(!el) return;
+  const c = themeColors();
+  const idx = activeIndices();
+  const labels = idx.map(i => DATA.indicators[i]);
+  const traces = [
+    { type:'bar', name:'PLS', x: labels, y: idx.map(i=>DATA.PLS_RMSE[i]), marker:{ color:'#2ca02c' } },
+    { type:'bar', name:'LM',  x: labels, y: idx.map(i=>DATA.LM_RMSE[i]),  marker:{ color:'#f39c12' } },
+    { type:'bar', name:'IA',  x: labels, y: idx.map(i=>DATA.IA_RMSE[i]),  marker:{ color:'#e74c3c' } }
+  ];
+  Plotly.newPlot(el, traces, {
+    barmode:'group', height:380, margin:{ l:50, r:20, t:30, b:90 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:10 },
+    xaxis:{ gridcolor:c.grid, tickangle:-60, tickfont:{ size:9 } },
+    yaxis:{ title:'RMSE', gridcolor:c.grid },
+    legend:{ font:{ color:c.text } }
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL3LandscapeMobile(){
+  const el = document.getElementById('chart-l3-landscape');
+  if(!el) return;
+  const c = themeColors();
+  const idx = activeIndices();
+  const labels = idx.map(i => DATA.indicators[i]);
+  const z = [
+    idx.map(i => DATA.PLS_RMSE[i]),
+    idx.map(i => DATA.LM_RMSE[i]),
+    idx.map(i => DATA.IA_RMSE[i])
+  ];
+  Plotly.newPlot(el, [{
+    type:'heatmap', z: z, x: labels, y: ['PLS','LM','IA'],
+    colorscale:'Turbo',
+    colorbar:{ title:'RMSE', thickness:12, tickfont:{ color:c.text } },
+    hovertemplate:'روش: %{y}<br>شاخص: %{x}<br>RMSE: %{z:.4f}<extra></extra>'
+  }], {
+    height:280, margin:{ l:60, r:20, t:20, b:80 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:10 },
+    xaxis:{ tickangle:-60, tickfont:{ size:9 } },
+    yaxis:{ gridcolor:c.grid }
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL3RidgeMobile(){
+  const el = document.getElementById('chart-l3-ridge');
+  if(!el) return;
+  const c = themeColors();
+  const idx = activeIndices();
+  const labels = idx.map(i => DATA.indicators[i]);
+  const values = idx.map(i => DATA.Q2[i]);
+  Plotly.newPlot(el, [{
+    type:'bar', x: labels, y: values,
+    marker:{ color: values, colorscale:'Viridis', line:{ color:'#000', width:0.5 } },
+    hovertemplate:'<b>%{x}</b><br>Q² = %{y:.4f}<extra></extra>'
+  }], {
+    height:340, margin:{ l:50, r:20, t:30, b:90 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:10 },
+    xaxis:{ tickangle:-60, tickfont:{ size:9 }, gridcolor:c.grid },
+    yaxis:{ title:'Q²predict', gridcolor:c.grid },
+    showlegend:false
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL3CVPATMobile(){
+  const el = document.getElementById('chart-l3-cvpat');
+  if(!el) return;
+  const c = themeColors();
+  const traces = CVPAT.comparisons.map((comp, ci) => ({
+    type:'bar', name: comp,
+    x: CVPAT.entities,
+    y: CVPAT.Diff[ci],
+    marker:{ color: ci === 0 ? '#e74c3c' : '#3498db' },
+    hovertemplate:'<b>%{x}</b><br>Δ = %{y:.4f}<extra></extra>'
+  }));
+  Plotly.newPlot(el, traces, {
+    barmode:'group', height:340, margin:{ l:50, r:20, t:30, b:40 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:11 },
+    xaxis:{ gridcolor:c.grid }, yaxis:{ title:'Δ', gridcolor:c.grid, zeroline:true, zerolinecolor:'#888' },
+    legend:{ font:{ color:c.text } }
+  }, { responsive:true, displayModeBar:false });
+}
+
+function drawL3RidgelineMobile(){
+  const el = document.getElementById('chart-l3-ridgeline');
+  if(!el) return;
+  const c = themeColors();
+  const idx = activeIndices();
+  const labels = idx.map(i => DATA.indicators[i]);
+  const means = idx.map(i => DATA.errors_mean[i]);
+  const sds = idx.map(i => DATA.SD[i]);
+  Plotly.newPlot(el, [{
+    type:'bar', x: labels, y: means,
+    error_y:{ type:'data', array: sds.map(s=>s*0.1), visible:true, color:'#3498db' },
+    marker:{ color:'#3498db' },
+    hovertemplate:'<b>%{x}</b><br>μ = %{y:.4f}<extra></extra>'
+  }], {
+    height:340, margin:{ l:50, r:20, t:30, b:90 },
+    paper_bgcolor:c.paper, plot_bgcolor:c.plot,
+    font:{ color:c.text, family:FONT_FA, size:10 },
+    xaxis:{ tickangle:-60, tickfont:{ size:9 }, gridcolor:c.grid },
+    yaxis:{ title:'خطای میانگین', gridcolor:c.grid },
+    showlegend:false
+  }, { responsive:true, displayModeBar:false });
+}
+
+/* ================================================================
+   RENDER CHARTS
+   ================================================================ */
 function renderChartsForActiveTab(){
   const active = document.querySelector('.page.active');
   if(!active) return;
@@ -1592,6 +1899,10 @@ function renderChartsForActiveTab(){
     if(el.children && el.children.length) { try { Plotly.purge(el); } catch(e){} }
   });
   try{
+    if (isMobile()) {
+      renderMobileCharts(id);
+      return;
+    }
     switch(id){
       case 'overview':          drawOverviewPath(); break;
       case 'descriptive':       renderDescriptiveStatistics(); break;
