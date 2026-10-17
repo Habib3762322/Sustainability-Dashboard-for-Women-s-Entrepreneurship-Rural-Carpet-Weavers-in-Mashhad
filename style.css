@@ -570,20 +570,18 @@ html[data-theme="light"] .desc-table tbody tr:nth-child(even){
 
 /* ================================================================
    MOBILE FIX — اصلاحات نهایی برای موبایل
-   این بلوک در انتهای فایل اضافه شده است.
-   روی دسکتاپ هیچ تغییری ایجاد نمی‌کند.
    ================================================================ */
 
-/* ۱) اسکرول افقی برای سه جدول اصلی که قبلاً بریده می‌شدند */
+/* ۱) اسکرول افقی برای سه جدول اصلی */
 .hyp-table-wrap,
 .vif-table-wrap,
 .desc-table-wrap{
   overflow-x: auto;
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch; /* اسکرول نرم iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* ۲) کاهش ارتفاع نمودارها در موبایل تا صفحه کوچک‌تر شود */
+/* ۲) کاهش ارتفاع نمودارها در موبایل */
 @media (max-width: 900px){
   .plot.tall{ min-height: 380px; }
   .smartpls-fig-body .plot{ min-height: 420px; }
@@ -601,4 +599,14 @@ html[data-theme="light"] .desc-table tbody tr:nth-child(even){
   .hyp-row td,
   .vif-row td,
   .desc-table tbody td{ font-size: 11px; padding: 8px 6px; }
+}
+
+/* ================================================================
+   MOBILE TOUCH FIX — جلوگیری از قفل شدن لمس توسط نمودارهای سه‌بعدی
+   ================================================================ */
+@media (max-width: 900px){
+  .js-plotly-plot .gl-container canvas,
+  .js-plotly-plot .plot-container .svg-container .gl-container canvas{
+    touch-action: pan-y !important;
+  }
 }
